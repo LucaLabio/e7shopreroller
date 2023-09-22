@@ -1,11 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sat Nov  7 19:19:03 2020
-
-@author: Ema
-"""
-
-
 from pyautogui import *
 import pyautogui
 import time
