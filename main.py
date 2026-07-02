@@ -5,15 +5,16 @@ import keyboard
 import pyautogui
 
 from helpers import helper
+from helpers.error_log import AppError, resource_path, write_error_log
 
-REFRESH_BUTTON_PATH = "images/ui/refresh_button.PNG"
+REFRESH_BUTTON_PATH = resource_path("images/ui/refresh_button.PNG")
 REFRESH_CONFIDENCE = 0.90
 SUMMON_CONFIDENCE = 0.97
 
 
 def get_data():
-    coven_pos = helper.locate("images/covenant/covenant.PNG", SUMMON_CONFIDENCE)
-    mystic_pos = helper.locate("images/mystic/mystic.PNG", SUMMON_CONFIDENCE)
+    coven_pos = helper.locate(helper.COVENANT_PATH, SUMMON_CONFIDENCE)
+    mystic_pos = helper.locate(helper.MYSTIC_PATH, SUMMON_CONFIDENCE)
     screen_reader = helper.read_text()
 
     return coven_pos, mystic_pos, screen_reader
@@ -25,7 +26,7 @@ def main():
     )
     if refresh_button_pos is None:
         print("Error: Unable to find reroll button")
-        sys.exit(1)
+        raise AppError("refresh_button", "Unable to find reroll button")
 
     refresh_count = 0
 
@@ -64,4 +65,11 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except AppError as exc:
+        write_error_log(exc.context, exc)
+        sys.exit(1)
+    except Exception as exc:
+        write_error_log("unknown", exc)
+        sys.exit(1)

@@ -5,6 +5,13 @@ import pyautogui
 import pytesseract
 from PIL import Image
 
+from helpers.error_log import AppError, resource_path
+
+COVENANT_PATH = resource_path("images/covenant/covenant.PNG")
+MYSTIC_PATH = resource_path("images/mystic/mystic.PNG")
+BUY_BUTTON_PATH = resource_path("images/ui/buy_button.png")
+CONFIRM_BUTTON_PATH = resource_path("images/ui/confirm_button.PNG")
+
 #Focus the game window on import
 pyautogui.PAUSE = 0.3
 pyautogui.FAILSAFE = True
@@ -30,7 +37,10 @@ def read_text() -> str:
     with mss.mss() as sct:
         screenshot = sct.grab(sct.monitors[1])
         image = Image.frombytes("RGB", screenshot.size, screenshot.rgb)
-    return pytesseract.image_to_string(image, lang="eng")
+    try:
+        return pytesseract.image_to_string(image, lang="eng")
+    except Exception as exc:
+        raise AppError("unknown", f"Tesseract OCR failed: {exc}") from exc
 
 
 def buy(pos, ypos):
@@ -45,7 +55,9 @@ def buy(pos, ypos):
         button="left",
     )
     time.sleep(0.4)
-    buy_button = locate("images/ui/buy_button.png", 0.95)
+    buy_button = locate(BUY_BUTTON_PATH, 0.95)
+    if buy_button is None:
+        raise AppError("buy_button", "Buy button not found on screen")
     buy_button_point = pyautogui.center(buy_button)
     pyautogui.click(
         x=buy_button_point[0],
@@ -103,9 +115,9 @@ def refresh(refresh_button_pos):
     )
     #Wait for confirm to appear
     time.sleep(0.5)
-    confirm_pos = pyautogui.locateOnScreen(
-        "images/ui/confirm_button.PNG", confidence=0.90
-    )
+    confirm_pos = pyautogui.locateOnScreen(CONFIRM_BUTTON_PATH, confidence=0.90)
+    if confirm_pos is None:
+        raise AppError("confirm_button", "Confirm button not found on screen")
     confirm_point = pyautogui.center(confirm_pos)
     time.sleep(0.2)
     pyautogui.click(
